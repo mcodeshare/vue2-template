@@ -5,6 +5,7 @@
   "code": "模块编码",
   "version": "0.1.0",
   "git": "git地址(非必填)",
+  "remoteUrl":"发布模板地址",
   "entry": [
     {
       "id": "uuid自动生成",
@@ -15,8 +16,8 @@
     }
   ],
   "userInfo": {
-    "userId": "",
-    "userName": ""
+    "userId": "xxxx",
+    "userName": "xxxx"
   },
   "extendedOptions": {
     "isHistoryRouter": false
