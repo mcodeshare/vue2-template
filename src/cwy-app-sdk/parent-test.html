@@ -4,29 +4,31 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>h5测试通信sdk</title>
+    <title>h5测试通信</title>
   </head>
   <body>
     <button id="btn">发送消息给iframe</button>
     <iframe src="http://localhost:9106/" frameborder="0" id="iframe"></iframe>
     <script>
       // 父级接收消息示例
+      let message = null
       window.addEventListener('message', (e) => {
+        message = JSON.parse(e.data)
         console.log('[父级接收到消息]', e.data)
       })
 
+      // 父级发送消息示例
       const iframeEl = document.querySelector('#iframe')
       const btnEl = document.querySelector('#btn')
-
-      const data = JSON.stringify({
-        type: 'amar-sdk',
-        data: {
-          msg: '保存图片到相册成功回调' + Math.random(),
-        },
-        action: 'SAVE_IMAGE_SUCCESS',
-      })
-
       btnEl.onclick = () => {
+        const data = JSON.stringify({
+          cwyCallId: message.cwyCallId,
+          data: {
+            msg: '回调携带的信息',
+          },
+          action: 'SAVE',
+        })
+
         iframeEl.contentWindow.postMessage(data, '*')
       }
     </script>
