@@ -4,6 +4,7 @@
 - 因为 reactNative 的 webview 只支持传递字符串，所以 sdk 内 postMessage 和 onMessage 传递和接收的参数需要保证能够被 JSON.stringify 和 JSON.parse 正常处理。
 - 调用 sdk 的 postMessage 方法时,方法内部会自动将传递的参数通过 JSON.stringify 转化为字符串进行发送，sdk 的 onMessage 回调被触发时会自动使用 JSON.parse 进行解析。
 - sdk 通过浏览器 userAgent 判断所处环境，所以在 ReactNative 环境下需要通过 webview 自定义 userAgent='cwy-app-webview'
+- sdk 在此项目中使用可参照 sdk-use-example.js
 
 #### 1、引入 sdk
 
@@ -21,7 +22,13 @@ new CwyAppSdk({
   // sdk挂载完成会触发
   ready: () => {
     console.log('sdk初始化完成')
-  }
+  },
+
+  // 设置开发环境数据
+  developData: {
+    // userLoginInfo获取位置 浏览器控制台 -> Application -> Storage -> Local Storage -> 复制commonData的值
+    userLoginInfo: { "svFiscalPeriod": "Ng==", "svMenuId": "", "svRgCode": "ODc=", "svRgName": "5YWoICDlm70=", "svRoleCode": "NjY2MDAx", "svRoleId": "OTA5MQ==", "svRoleName": "6LSi5Yqh57O757uf566h55CG5ZGY", "svSetYear": "MjAyMw==", "svTransDate": "MjAyMy0wNi0wNw==", "svUserCode": "Y20wMQ==", "svUserId": "OTUxNg==", "svUserName": "", "svAgencyName": "6YeH6LSt5Y2V5L2N", "svDistCode": "110101", "svDistName": "东城区", "svIsPower": "0", "svSnum": "0", "svAgencyCode": "MTAw", "svAcctCode": "", "svAcctName": "", "svSysDate": "MjAyMy0wNi0wNyAxMzo0Nzo0MA==", "token": "NzNmZjUyMTgwNDVkNjViM2UzNDdhYzVkMmE3NDUwM2U=" }
+  },
 })
 ```
 
@@ -41,7 +48,13 @@ window.cwyAppSdk.postMessage(data, (res) => {
 })
 ```
 
-#### 4、发送及接收消息参数约定
+#### 4、获取用户信息
+
+```
+window.cwyAppSdk.getUserInfo()
+```
+
+#### 5、发送及接收消息参数约定
 
 ```
 {
@@ -60,7 +73,7 @@ window.cwyAppSdk.postMessage(data, (res) => {
 
 ### 二、使用示例
 
-#### 1、H5 使用示例
+#### 1、H5 父页面发送消息接收消息示例
 
 - 父页面
 
@@ -105,21 +118,81 @@ window.cwyAppSdk.postMessage(data, (res) => {
 
 ```
 
-- iframe 内
+#### 2、ReactNative 示例
+
+- 父页面(注意 ReactNative WebView 需要自定义 userAgent='cwy-app-webview')
+
+```
+import React, { useRef } from 'react'
+import { View } from '@tarojs/components'
+import { WebView } from 'react-native-webview'
+import './index.scss'
+export default function Index (props: any) {
+  const webRef = useRef(null)
+
+  // 注入userLoginInfo
+  const userLoginInfo = "{ svFiscalPeriod: 'Ng==', svMenuId: '', svRgCode: 'ODc=', svRgName: '5YWoICDlm70=', svRoleCode: 'NjY2MDAx', svRoleId: 'OTA5MQ==', svRoleName: '6LSi5Yqh57O757uf566h55CG5ZGY', svSetYear: 'MjAyMw==', svTransDate: 'MjAyMy0wNi0wNw==', svUserCode: 'Y20wMQ==', svUserId: 'OTUxNg==', svUserName: '', svAgencyName: '6YeH6LSt5Y2V5L2N', svDistCode: '110101', svDistName: '东城区', svIsPower: '0', svSnum: '0', svAgencyCode: 'MTAw', svAcctCode: '', svAcctName: '', svSysDate: 'MjAyMy0wNi0wNyAxMzo0Nzo0MA==', token: 'NzNmZjUyMTgwNDVkNjViM2UzNDdhYzVkMmE3NDUwM2U=' }"
+  const injectedJavaScript = `
+  localStorage.setItem('commonData', JSON.stringify(${userLoginInfo}))
+  `
+
+  function mockApi (params) {
+    const { cwyCallId, action } = params
+    // 三秒后api返回消息
+    setTimeout(() => {
+      const data = JSON.stringify({
+        cwyCallId,
+        action,
+        data: '需要返回的数据'
+      })
+      webRef.current.injectJavaScript(`
+        window.cwyAppSdk.onMessage(JSON.stringify(${data}))
+      `)
+    }, 3000)
+  }
+
+  return <View className='main-page'>
+    <WebView
+      ref={webRef}
+      originWhitelist={['*']}
+      userAgent='cwy-app-webview'
+      source={{ uri: 'http://10.6.246.79:9106/index.html' }}
+      injectedJavaScript={injectedJavaScript}
+      onMessage={(event) => {
+        console.log('网页发来的消息', event.nativeEvent.data)
+        // 调用api
+        mockApi(JSON.parse(event.nativeEvent.data))
+      }}
+    />
+  </View>
+}
+
+```
+
+- iframe 或 webview 内 sdk 使用示例
 
 ```
 /* 引入sdk */
 import CwyAppSdk from './cwyAppSdk'
 
 new CwyAppSdk({
-  // 是否开启调试，开启调试会在控制台打印日志
+  // 是否开启调试，开启调试会在控制台打印日志，错误日志不受影响始终打印
   debug: true,
 
   // sdk挂载完成会触发
   ready: () => {
     console.log('sdk初始化完成')
-  }
+  },
+
+  // 设置开发环境数据
+  developData: {
+    // userLoginInfo获取位置 浏览器控制台 -> Application -> Storage -> Local Storage -> 复制commonData的值
+    userLoginInfo: { "svFiscalPeriod": "Ng==", "svMenuId": "", "svRgCode": "ODc=", "svRgName": "5YWoICDlm70=", "svRoleCode": "NjY2MDAx", "svRoleId": "OTA5MQ==", "svRoleName": "6LSi5Yqh57O757uf566h55CG5ZGY", "svSetYear": "MjAyMw==", "svTransDate": "MjAyMy0wNi0wNw==", "svUserCode": "Y20wMQ==", "svUserId": "OTUxNg==", "svUserName": "", "svAgencyName": "6YeH6LSt5Y2V5L2N", "svDistCode": "110101", "svDistName": "东城区", "svIsPower": "0", "svSnum": "0", "svAgencyCode": "MTAw", "svAcctCode": "", "svAcctName": "", "svSysDate": "MjAyMy0wNi0wNyAxMzo0Nzo0MA==", "token": "NzNmZjUyMTgwNDVkNjViM2UzNDdhYzVkMmE3NDUwM2U=" }
+  },
 })
+
+/* 通过sdk获取用户信息 */
+console.log('通过sdk获取userLoginInfo', window.cwyAppSdk.getUserInfo())
 
 // 通过sdk发送消息，发送的消息可以根据实际情况修改，只要能被JSON.stringify 和 JSON.parse 正常处理即可
 const data = {
@@ -128,55 +201,8 @@ const data = {
   },
   action: 'REQUEST',
 }
-
 window.cwyAppSdk.postMessage(data, (res) => {
   console.log('回调函数获取到的数据 =>', res)
 })
 
 ```
-
-#### 2、ReactNative 使用示例
-
-- 父页面(注意 ReactNative WebView 需要自定义 userAgent='cwy-app-webview')
-
-```
-import React, { useEffect, useRef } from 'react'
-import { View } from '@tarojs/components'
-import { WebView } from 'react-native-webview'
-export default function Index (props: any) {
-  const webRef = useRef(null)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      // 页面加载完成三秒后向网页发送消息
-      const data = JSON.stringify({
-        cwyCallId: '从onMessage接收数据event.nativeEvent.data.cwyCallId取',
-        data: '需要传递的数据',
-        action: '约定的action'
-      })
-
-      webRef.current.injectJavaScript(`
-        window.amarSdk.onMessage(JSON.stringify(${data}))
-      `)
-    }, 3000)
-
-    return () => {
-      clearTimeout(timer)
-    }
-  }, [])
-  return <View className='main-page'>
-    <WebView
-      ref={webRef}
-      originWhitelist={['*']}
-      userAgent='cwy-app-webview'
-      source={{ uri: 'http://10.6.240.104:9106/index.html' }}
-      onMessage={(event) => {
-        // 接收网页发来的消息
-        console.log(event.nativeEvent.data)
-      }}
-    />
-  </View>
-}
-
-```
-
-- webview 内 sdk 使用方式同上文 iframe 内使用方式
