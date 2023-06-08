@@ -1,31 +1,29 @@
 /* 引入sdk */
-import CwyAppSdk from '.'
-import userLoginInfo from './userLoginInfo'
+import CwyAppSdk from './cwy-app-sdk'
+/* 引入开发依赖api,非真机调试会调用此api，打包会自动排除此部分代码 */
+import './developApi'
+
 /* 初始化sdk */
 new CwyAppSdk({
   // 是否开启调试，开启调试会在控制台打印日志，错误日志不受影响始终打印
   debug: true,
-  // 设置开发环境数据
-  developData: {
-    userLoginInfo: userLoginInfo
-  },
   // sdk挂载完成会触发
   ready: () => {
     console.log('sdk初始化完成')
   }
 })
 
-/* 通过sdk获取用户信息 */
-console.log('通过sdk获取userLoginInfo', window.cwyAppSdk.getUserInfo())
-
 /* 通过sdk发送消息，发送的消息可以根据实际情况修改，只要能被JSON.stringify 和 JSON.parse 正常处理即可 */
 const mockAPiParams = {
-  data: {
-    path: '网络请求url',
-  },
-  action: 'REQUEST',
+  data: "",
+  action: 'USER_INFO',
 }
 
-window.cwyAppSdk.postMessage(mockAPiParams, (res) => {
-  console.log('api调用返回信息 =>', res)
+window.cwyAppSdk.postMessage(mockAPiParams, {
+  success: (res) => {
+    console.log('api调用成功信息 =>', res)
+  },
+  fail: (res) => {
+    console.log('api调用失败信息 =>', res)
+  },
 })

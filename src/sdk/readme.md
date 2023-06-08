@@ -10,6 +10,9 @@
 
 ```
 import CwyAppSdk from 'sdk所在路径'
+
+// 如需h5下直接调试需引入developApi
+import './developApi'
 ```
 
 #### 2、初始化 sdk,实例将自动挂载到 window 上
@@ -23,12 +26,6 @@ new CwyAppSdk({
   ready: () => {
     console.log('sdk初始化完成')
   },
-
-  // 设置开发环境数据
-  developData: {
-    // userLoginInfo获取位置 浏览器控制台 -> Application -> Storage -> Local Storage -> 复制commonData的值
-    userLoginInfo: { "svFiscalPeriod": "Ng==", "svMenuId": "", "svRgCode": "ODc=", "svRgName": "5YWoICDlm70=", "svRoleCode": "NjY2MDAx", "svRoleId": "OTA5MQ==", "svRoleName": "6LSi5Yqh57O757uf566h55CG5ZGY", "svSetYear": "MjAyMw==", "svTransDate": "MjAyMy0wNi0wNw==", "svUserCode": "Y20wMQ==", "svUserId": "OTUxNg==", "svUserName": "", "svAgencyName": "6YeH6LSt5Y2V5L2N", "svDistCode": "110101", "svDistName": "东城区", "svIsPower": "0", "svSnum": "0", "svAgencyCode": "MTAw", "svAcctCode": "", "svAcctName": "", "svSysDate": "MjAyMy0wNi0wNyAxMzo0Nzo0MA==", "token": "NzNmZjUyMTgwNDVkNjViM2UzNDdhYzVkMmE3NDUwM2U=" }
-  },
 })
 ```
 
@@ -37,37 +34,50 @@ new CwyAppSdk({
 ```
 // 通过sdk发送消息，发送的消息可以根据实际情况修改，只要能被JSON.stringify 和 JSON.parse 正常处理即可
 const data = {
-  data: {
-    url: '',
-  },
-  action: 'REQUEST',
+  data: "",
+  action: 'USER_INFO',
 }
 
-window.cwyAppSdk.postMessage(data, (res) => {
-  console.log('回调函数获取到的数据 =>', res)
+window.cwyAppSdk.postMessage(data, {
+  success: (res) => {
+    console.log('api调用成功信息 =>', res)
+  },
+  fail: (res) => {
+    console.log('api调用失败信息 =>', res)
+  },
 })
-```
-
-#### 4、获取用户信息
 
 ```
-window.cwyAppSdk.getUserInfo()
-```
 
-#### 5、发送及接收消息参数约定
+#### 4、发送及接收消息参数约定
+
+- sdk 发送消息参数
 
 ```
 {
-  // 这个参数是通信sdk自动添加的，用于确定接收消息时调用哪个函数,底座传参时必须将此参数带回
+  // 【自动生成不需要传】这个参数是通信sdk自动添加的，用于确定接收消息时调用哪个函数
   cwyCallId:'cwy-app-sdk-461F9EA6-790E-y8B8-B25C-7976C4DCB89B',
 
-  // 用于标识调用什么api或回调函数
-  action: 'SAVE_IMAGE_TO_PHOTOS_ALBUM'
+  // 【必传】调用api标识
+  action: 'USER_INFO'
 
-  // data可以是任何可被JSON.stringify 和 JSON.parse正常处理的数据,具体数据根据调用不同api及回调的约定编写
-  data: {
-    path: 'http://xxxx.com/xxx.png',
-  },
+  // 【必传】data可以是任何可被JSON.stringify 和 JSON.parse正常处理的数据,具体数据根据调用不同api约定编写
+  data: "",
+}
+```
+
+- 底座发回的消息
+
+```
+{
+  // 【必传】从接收到的数据复制
+  cwyCallId:'cwy-app-sdk-461F9EA6-790E-y8B8-B25C-7976C4DCB89B',
+
+  // 【必传】从接收到的数据复制，或文档另有约定
+  action: 'USER_INFO'
+
+  // 【必传】data可以是任何可被JSON.stringify 和 JSON.parse正常处理的数据,具体数据根据回调的约定编写
+  data: "",
 }
 ```
 
@@ -174,6 +184,8 @@ export default function Index (props: any) {
 ```
 /* 引入sdk */
 import CwyAppSdk from './cwyAppSdk'
+/* 引入开发依赖api,非真机调试会调用此api，打包会自动排除此部分代码 */
+import './developApi'
 
 new CwyAppSdk({
   // 是否开启调试，开启调试会在控制台打印日志，错误日志不受影响始终打印
@@ -184,11 +196,6 @@ new CwyAppSdk({
     console.log('sdk初始化完成')
   },
 
-  // 设置开发环境数据
-  developData: {
-    // userLoginInfo获取位置 浏览器控制台 -> Application -> Storage -> Local Storage -> 复制commonData的值
-    userLoginInfo: { "svFiscalPeriod": "Ng==", "svMenuId": "", "svRgCode": "ODc=", "svRgName": "5YWoICDlm70=", "svRoleCode": "NjY2MDAx", "svRoleId": "OTA5MQ==", "svRoleName": "6LSi5Yqh57O757uf566h55CG5ZGY", "svSetYear": "MjAyMw==", "svTransDate": "MjAyMy0wNi0wNw==", "svUserCode": "Y20wMQ==", "svUserId": "OTUxNg==", "svUserName": "", "svAgencyName": "6YeH6LSt5Y2V5L2N", "svDistCode": "110101", "svDistName": "东城区", "svIsPower": "0", "svSnum": "0", "svAgencyCode": "MTAw", "svAcctCode": "", "svAcctName": "", "svSysDate": "MjAyMy0wNi0wNyAxMzo0Nzo0MA==", "token": "NzNmZjUyMTgwNDVkNjViM2UzNDdhYzVkMmE3NDUwM2U=" }
-  },
 })
 
 /* 通过sdk获取用户信息 */
@@ -196,13 +203,17 @@ console.log('通过sdk获取userLoginInfo', window.cwyAppSdk.getUserInfo())
 
 // 通过sdk发送消息，发送的消息可以根据实际情况修改，只要能被JSON.stringify 和 JSON.parse 正常处理即可
 const data = {
-  data: {
-    path: '网络请求url',
-  },
-  action: 'REQUEST',
+  data: "",
+  action: 'USER_INFO',
 }
-window.cwyAppSdk.postMessage(data, (res) => {
-  console.log('回调函数获取到的数据 =>', res)
+
+window.cwyAppSdk.postMessage(data, {
+  success: (res) => {
+    console.log('api调用成功信息 =>', res)
+  },
+  fail: (res) => {
+    console.log('api调用失败信息 =>', res)
+  },
 })
 
 ```

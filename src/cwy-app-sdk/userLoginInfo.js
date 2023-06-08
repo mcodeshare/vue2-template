@@ -1,3 +1,0 @@
-// userLoginInfo获取位置 浏览器控制台 -> Application -> Storage -> Local Storage -> 复制commonData的值
-const userLoginInfo = { "svFiscalPeriod": "Ng==", "svMenuId": "", "svRgCode": "ODc=", "svRgName": "5YWoICDlm70=", "svRoleCode": "NjY2MDAx", "svRoleId": "OTA5MQ==", "svRoleName": "6LSi5Yqh57O757uf566h55CG5ZGY", "svSetYear": "MjAyMw==", "svTransDate": "MjAyMy0wNi0wNw==", "svUserCode": "Y20wMQ==", "svUserId": "OTUxNg==", "svUserName": "", "svAgencyName": "6YeH6LSt5Y2V5L2N", "svDistCode": "110101", "svDistName": "东城区", "svIsPower": "0", "svSnum": "0", "svAgencyCode": "MTAw", "svAcctCode": "", "svAcctName": "", "svSysDate": "MjAyMy0wNi0wNyAxMzo0Nzo0MA==", "token": "NzNmZjUyMTgwNDVkNjViM2UzNDdhYzVkMmE3NDUwM2U=" }
-export default userLoginInfo
