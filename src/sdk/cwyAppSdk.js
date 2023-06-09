@@ -115,33 +115,39 @@ class CwyAppSdk {
   removeCallFn(key) {
     Reflect.deleteProperty(this.callMap, key)
   }
+  /* 根据key移除object属性 */
+  delByKeys(obj, keys) {
+    keys.forEach(key => {
+      Reflect.deleteProperty(obj, key)
+    })
+  }
   /* 回调函数调用 */
   handleCall(data) {
-    if (data && typeof data === 'string') {
+    if (data && typeof data === 'string' && data.indexOf('sdkId') !== -1 && data.indexOf(SDK_CONFIG.CALL_KEY) !== -1) {
       try {
         const jsonData = JSON.parse(data)
-        if (this.has(jsonData, 'sdkId') && this.has(jsonData, SDK_CONFIG.CALL_KEY)) {
-          // 不是此sdk的消息不处理,sdk发出的消息不监听自身
-          if (jsonData.sdkId !== this.sdkId || jsonData._isCwySdkSend === '1') {
-            return
-          }
-          this.logger.log(`[${SDK_CONFIG.NAME}-ONMESSAGE]`, jsonData)
-          const callBackId = jsonData[SDK_CONFIG.CALL_KEY]
-          Reflect.deleteProperty(jsonData, SDK_CONFIG.SDK_KEY)
-          Reflect.deleteProperty(jsonData, SDK_CONFIG.CALL_KEY)
-          if (jsonData.data.flag === SDK_CONFIG.CALL_SUCCESS) {
-            // sdk成功回调
-            this.callMap[callBackId].success(jsonData)
-          } else {
-            // sdk失败回调
-            this.callMap[callBackId].fail(jsonData)
-          }
-          // 移除已经执行回调函数
-          this.removeCallFn(callBackId)
+        // 不是此sdk的消息不处理,sdk发出的消息不监听自身
+        if (jsonData.sdkId !== this.sdkId || jsonData._is_cwy_sdk_send === '1') {
+          return
         }
+        this.logger.log('cwy-app-sdk onmessage:', jsonData)
+        const callBackId = jsonData[SDK_CONFIG.CALL_KEY]
+        this.delByKeys(jsonData, [SDK_CONFIG.SDK_KEY, SDK_CONFIG.CALL_KEY])
+        const { success, fail, complete } = this.callMap[callBackId]
+        if (jsonData.data.flag === SDK_CONFIG.CALL_SUCCESS) {
+          // sdk成功回调
+          typeof success === 'function' && success(jsonData)
+          typeof complete === 'function' && complete(jsonData)
+        } else {
+          // sdk失败回调
+          typeof fail === 'function' && fail(jsonData)
+          typeof complete === 'function' && complete(jsonData)
+        }
+        // 移除已经执行回调函数
+        this.removeCallFn(callBackId)
       } catch (error) {
-        this.logger.error(`${SDK_CONFIG.NAME}回调参数异常`, error)
-        this.logger.log('异常数据 => ', data)
+        this.logger.error(`cwy-app-sdk onmessage error`, error)
+        this.logger.log('error data:', data)
       }
     }
   }
@@ -165,11 +171,12 @@ class CwyAppSdk {
       postMessage: (data) => {
         window.ReactNativeWebView.postMessage(data)
       },
-      onMessage: (data) => {
-        this.handleCall(data)
+      onMessage: (e) => {
+        this.handleCall(e.data)
       },
-      // react-native是通过注入js代码直接调用window上sdk的方法,所以不需要监听事件和取消监听
-      subscript: null,
+      subscript: (fn) => {
+        window.document.addEventListener('message', fn, false)
+      }
     },
   }
   /* 初始化通信JSBridge */
@@ -179,22 +186,28 @@ class CwyAppSdk {
       const postMessage = this.core[env].postMessage
       const onMessage = this.core[env].onMessage
       const subscript = this.core[env].subscript
-      const newPostMessage = (params, funcMap) => {
+      const newPostMessage = (params) => {
         // 生成回调函数唯一标识并注册
         params[SDK_CONFIG.CALL_KEY] = SDK_CONFIG.CALL_ID_PREFIX + this.uuid()
         // 携带sdk标识用于防止处理自身发出的消息
         params[SDK_CONFIG.SDK_KEY] = this.sdkId
         // 标识是sdk发送的消息，用于sdk内部判断
-        params._isCwySdkSend = '1'
-        this.callMap[params[SDK_CONFIG.CALL_KEY]] = funcMap
-        this.logger.log(`[${SDK_CONFIG.NAME}-POSTMESSAGE]`, params)
+        params._is_cwy_sdk_send = '1'
+        const { success, complete, fail } = params
+        this.callMap[params[SDK_CONFIG.CALL_KEY]] = {
+          success,
+          fail,
+          complete
+        }
+        this.logger.log('cwy-app-sdk postmessage:', params)
         // 若是RN环境直接调用真实api
         try {
+          this.delByKeys(params, ['success', 'fail', 'complete'])
           const jsonStr = JSON.stringify(params)
           postMessage(jsonStr)
         } catch (error) {
-          this.logger.error(`${SDK_CONFIG.NAME} postMessage参数异常`, error)
-          this.logger.log('异常数据 => ', params)
+          this.logger.error(`cwy-app-sdk postmessage error`, error)
+          this.logger.log('error data:', params)
         }
       }
       // 初始化postMessage

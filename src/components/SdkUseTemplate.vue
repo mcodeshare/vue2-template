@@ -9,6 +9,8 @@
     </div>
     <div class="sdk-msg">
       <h3>SDK回调信息</h3>
+      <button @click="reload">重新加载</button>
+      <br />
       <button @click="clear">清空控制台</button>
       {{ sdkMsg }}
     </div>
@@ -30,11 +32,18 @@ export default {
           },
         },
         {
+          name: "获取ENV",
+          detail: {
+            data: "",
+            action: "ENV",
+          },
+        },
+        {
           name: "发送请求",
           detail: {
             data: {
-              url: "/api/post",
-              method: "post",
+              url: "a/amar/billconfig/theme/get/default",
+              method: "get",
               data: {
                 msg: "请求携带的参数",
               },
@@ -49,8 +58,7 @@ export default {
           detail: {
             data: {
               url: "/api/upload",
-              filePath:
-                "blob:http://localhost:9106/ae72dc4e-3e61-437b-9179-17e0fc6d2d4d",
+              filePath: "xxxxxxxxxxxxxx",
               name: "文件名",
               formData: {},
               ip: "",
@@ -86,51 +94,49 @@ export default {
         this.handleUpload(data);
         return;
       }
-      window.cwyAppSdk.postMessage(data, {
+      window.cwyAppSdk.postMessage({
+        ...data,
         success: (res) => {
-          this.sdkMsg = `【 ${data.action} 成功 】 ${JSON.stringify(res)}`;
-          console.log(`【 ${data.action} 成功 】=> `, res);
+          console.log(`${data.action} success`, res);
         },
         fail: (res) => {
-          this.sdkMsg = `【 ${data.action} 失败 】 ${JSON.stringify(res)}`;
-          console.log(`【 ${data.action} 失败 】=> `, res);
+          console.log(`${data.action} fail`, res);
         },
       });
     },
     handleUpload(data) {
-      const chooseImgData = {
+      // 上传文件特殊处理,先选择图片再上传
+      window.cwyAppSdk.postMessage({
+        action: "CHOOSE_IMAGE",
         data: {
           count: 1,
           sizeType: ["original", "compressed"],
           sourceType: ["album"],
         },
-        action: "CHOOSE_IMAGE",
-      };
-      // 上传文件特殊处理,先选择图片再上传
-      window.cwyAppSdk.postMessage(chooseImgData, {
         success: (res) => {
-          console.log("选择图片成功", res);
-          const uploadFileData = data;
-          uploadFileData.data.filePath = res.data.data.tempFilePaths[0];
-          window.cwyAppSdk.postMessage(uploadFileData, {
+          console.log("CHOOSE_IMAGE success", res);
+          window.cwyAppSdk.postMessage({
+            ...data,
+            filePath: res.data.data.tempFilePaths[0],
             success: (res) => {
-              this.sdkMsg = `【 ${data.action} 成功 】 ${JSON.stringify(res)}`;
-              console.log(`【 ${data.action} 成功 】=> `, res);
+              console.log(`${data.action} success`, res);
             },
             fail: (res) => {
-              this.sdkMsg = `【 ${data.action} 失败 】 ${JSON.stringify(res)}`;
-              console.log(`【 ${data.action} 失败 】=> `, res);
+              console.log(`${data.action} fail`, res);
             },
           });
         },
         fail: (res) => {
-          console.log("选择图片失败", res);
+          console.log("CHOOSE_IMAGE fail", res);
         },
       });
     },
     // 清空控制台
     clear() {
       console.clear();
+    },
+    reload() {
+      window.location.reload();
     },
   },
   mounted() {},
