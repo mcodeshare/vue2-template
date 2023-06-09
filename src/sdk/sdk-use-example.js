@@ -14,12 +14,7 @@ new CwyAppSdk({
 })
 
 /* 通过sdk发送消息，发送的消息可以根据实际情况修改，只要能被JSON.stringify 和 JSON.parse 正常处理即可 */
-const mockAPiParams = {
-  data: "",
-  action: 'USER_INFO',
-}
-
-window.cwyAppSdk.postMessage(mockAPiParams, {
+window.cwyAppSdk.postMessage({ data: "", action: 'USER_INFO', }, {
   success: (res) => {
     console.log('api调用成功信息 =>', res)
   },
