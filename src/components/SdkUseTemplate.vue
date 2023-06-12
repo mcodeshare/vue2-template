@@ -25,6 +25,13 @@ export default {
       sdkMsg: "",
       tempList: [
         {
+          name: "返回",
+          detail: {
+            data: "",
+            action: "NAVIGATE_BACK",
+          },
+        },
+        {
           name: "获取用户信息",
           detail: {
             data: "",
@@ -39,7 +46,22 @@ export default {
           },
         },
         {
-          name: "发送请求",
+          name: "发送请求(错误路径)",
+          detail: {
+            data: {
+              url: "a/amar/billconfig/theme/get/default",
+              method: "get",
+              data: {
+                msg: "请求携带的参数",
+              },
+              contentType: "",
+              ip: "",
+            },
+            action: "REQUEST",
+          },
+        },
+        {
+          name: "发送请求(正确路径)",
           detail: {
             data: {
               url: "/amar/billconfig/theme/get/default",

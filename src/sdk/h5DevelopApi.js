@@ -677,8 +677,8 @@ const H5Request = (params) => {
           reject(res)
         }
       },
-      fail: (error) => {
-        reject(error)
+      fail: (err) => {
+        reject(`Network request failed ${err.status}`)
       }
     })
   })
