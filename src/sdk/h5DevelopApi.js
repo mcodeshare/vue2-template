@@ -691,7 +691,7 @@ export function imageToBase64(filePath) {
     // 至关重要
     xhr.responseType = 'blob'
     xhr.onload = function () {
-      if (this.status == 200) {
+      if (this.status === 200) {
         // 得到一个blob对象
         var blob = this.response
         // 至关重要
