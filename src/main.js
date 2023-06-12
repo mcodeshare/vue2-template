@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import App from './App.vue'
 // 引入sdk使用示例
-import './sdk/sdk-use-example'
+import './sdk/sdkUseExample'
 
 Vue.config.productionTip = false
 

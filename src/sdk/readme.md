@@ -11,8 +11,8 @@
 ```
 import CwyAppSdk from 'sdk所在路径'
 
-// 如需h5下直接调试需引入developApi
-import './developApi'
+// 如需h5下直接调试需引入h5DevelopApi
+import './h5DevelopApi'
 ```
 
 #### 2、初始化 sdk,实例将自动挂载到 window 上
@@ -20,13 +20,48 @@ import './developApi'
 ```
 new CwyAppSdk({
   // 是否开启调试，开启调试会在控制台打印日志
-  debug: true,
+  debug: process.env.NODE_ENV === 'development',
 
   // sdk挂载完成会触发
   ready: () => {
     console.log('sdk初始化完成')
   },
 })
+```
+
+- 引入 H5 调试环境和移动调试控制台
+
+```
+/* 引入开发依赖api,非真机调试会调用此api，打包会自动排除此部分代码 */
+if (process.env.NODE_ENV === 'development') {
+  // 注册用户登录信息到开发环境
+  const userLoginInfo = require('../../public/userLoginInfo.json')
+  new H5DevelopApi({ userLoginInfo })
+
+  // 远程加载js
+  const loadScript = (url, callback) => {
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    if (script.readyState) {
+      script.onreadystatechange = function () {
+        if (script.readyState == "complete" || script.readyState == "loaded") {
+          callback()
+        }
+      }
+    } else {
+      script.onload = function () {
+        callback()
+      }
+    }
+    script.src = url
+    document.head.appendChild(script)
+  }
+  // 引入移动端控制台
+  loadScript('https://cdn.bootcss.com/eruda/1.4.3/eruda.min.js', () => {
+    // eslint-disable-next-line no-undef
+    eruda.init()
+  })
+}
 ```
 
 #### 3、使用 sdk 的 postMessage 方法发送消息
