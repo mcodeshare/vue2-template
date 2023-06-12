@@ -58,7 +58,7 @@ export default {
           detail: {
             data: {
               url: "/api/upload",
-              filePath: "xxxxxxxxxxxxxx",
+              filePath: "",
               name: "文件名",
               formData: {},
               ip: "",
@@ -117,7 +117,10 @@ export default {
           console.log("CHOOSE_IMAGE success", res);
           window.cwyAppSdk.postMessage({
             ...data,
-            filePath: res.data.data.tempFilePaths[0],
+            data: {
+              ...data.data,
+              filePath: res.data.data.tempFilePaths[0],
+            },
             success: (res) => {
               console.log(`${data.action} success`, res);
             },

@@ -4,13 +4,13 @@ module.exports = defineConfig({
   devServer: {
     port: 9106,
     proxy: {
-      '/api': {
-        target: "http://httpbin.org",
-        changOrigin: true,
-        pathRewrite: {
-          '^/api': ''
-        }
-      }
+      // '/api': {
+      //   target: "http://httpbin.org",
+      //   changOrigin: true,
+      //   pathRewrite: {
+      //     '^/api': ''
+      //   }
+      // }
     }
   }
 })

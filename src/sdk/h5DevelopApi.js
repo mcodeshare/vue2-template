@@ -660,41 +660,17 @@ const H5Api = {
 }
 /* ***************************************** 模拟底座工程对api的二次封装 ***************************************** */
 const H5Request = (params) => {
-  // TODO:tokenId、userName、BASE_URL无处理
-  const tokenId = 'xxxxxxx'
-  const userName = 'xxxxxxx'
-  const BASE_URL = ''
-
-  let httpUrl = params.url // 请求地址
-  let method = params.method // 请求方式
-  let httpParams = params.data
-  const contentType = params.contentType || 'application/json'
-  let headerParmas = {}
-  if (params.url.indexOf('http') === -1) {
-    httpUrl = BASE_URL + params.url
-  }
-
-  headerParmas = {
-    Credentials: 'include',
-    Cookie: 'username=' + window.btoa(userName) + '; tokenid=' + tokenId,
-    'content-type': contentType,
-    tokenid: tokenId
-  }
-  if (params.contentType === 'application/x-www-form-urlencoded' && params.data) { // 表单
-    httpParams = serializeParams(params.data)
-  }
-
+  const { url, method, responseType, dataType } = params
   return new Promise((resolve, reject) => {
     H5Api.request({
-      url: httpUrl,
-      method: method,
-      data: httpParams || {},
-      responseType: params.responseType || 'text',
-      dataType: params.dataType || 'json',
-      header: headerParmas,
-      timeout: httpUrl === '/amar/billconfig/theme/get/default' ? 6000 : 40000,
+      url,
+      method,
+      data: params,
+      responseType: responseType || 'text',
+      dataType: dataType || 'json',
+      header: {},
+      timeout: 40000,
       success: res => {
-        // TODO:原有移除token、状态码判断等操作未增加
         if (res.statusCode === 200) {
           resolve(res.data)
         } else {
@@ -707,58 +683,73 @@ const H5Request = (params) => {
     })
   })
 }
-const H5UploadFile = (params) => {
-  return new Promise((resolve, reject) => {
-    H5Api.uploadFile({
-      url: params.url,
-      filePath: params.filePath,
-      name: params.name,
-      header: {
-        // TODO:Cookie携带的username，tokenId等未处理，BaseUrl h5未处理
-        // Cookie: 'username=' + Base64.encode(userName) + '; tokenid=' + tokenId,
-        // tokenid: tokenId// 需要动态修改tokenid值
-      },
-      formData: {
-        name: params.formData.name
-      },
-      timeout: 40000,
-      success(res) {
-        if (res.status === 200 || res.statusCode === 200) {
-          if (res.data) {
-            resolve(res.data)
-          } else {
-            res.json().then((response) => {
-              resolve(response)
-            })
-          }
-        } else {
-          reject(res)
+export function imageToBase64(filePath) {
+  return new Promise((resolve) => {
+    window.URL = window.URL || window.webkitURL
+    var xhr = new XMLHttpRequest()
+    xhr.open('get', filePath, true)
+    // 至关重要
+    xhr.responseType = 'blob'
+    xhr.onload = function () {
+      if (this.status == 200) {
+        // 得到一个blob对象
+        var blob = this.response
+        // 至关重要
+        const oFileReader = new FileReader()
+        oFileReader.onloadend = function (e) {
+          // 配置页面用
+          resolve(e.target.result)
         }
-      },
-      // eslint-disable-next-line no-unused-vars
-      fail(res) {
-        // TODO:上传fail情况未处理
-        reject(res)
+        oFileReader.readAsDataURL(blob)
       }
+    }
+    xhr.send()
+  })
+}
+// 下载base64文件
+const downloadBase64 = (base64, fileName) => {
+  return new Promise((resolve) => {
+    const base64ToBlob = function (base64) { // base64编码格式：'data:image/jpeg;base64,/9j/4AAQSkZJRgAB...'
+      const MIMEAndCode = base64.split(';base64,'); // 分割完整的base64编码分别得到各个部分（MIME文件类型相关、纯编码）
+      const contentType = MIMEAndCode[0].split(':')[1]; // image/jpeg，用于构造Blob对象时指定文件类型type
+      const rawCode = window.atob(MIMEAndCode[1]);
+      const rawCodeLength = rawCode.length;
+      const uInt8Array = new Uint8Array(rawCodeLength);
+      for (let i = 0; i < rawCodeLength; i++) {
+        uInt8Array[i] = rawCode.charCodeAt(i);
+      }
+      return new Blob([uInt8Array], {
+        type: contentType
+      });
+    };
+    const blob = base64ToBlob(base64)
+    let a = document.createElement('a');
+    const fileUrl = URL.createObjectURL(blob);
+    a.href = fileUrl
+    a.download = fileName;
+    a.click();
+    a = null;
+    resolve(fileUrl)
+  })
+}
+const H5UploadFile = async (params) => {
+  let base64 = await imageToBase64(params.filePath)
+  return new Promise((resolve, reject) => {
+    request({ url: params.url, method: 'POST', data: { name: (params.formData.name || params.name), baseContent: base64, ...(params.formData || {}) } }).then(res => {
+      resolve(res)
+    }).catch(err => {
+      reject(err)
     })
   })
 }
 const H5DownloadFile = (params) => {
   return new Promise((resolve, reject) => {
-    H5Api.downloadFile({
-      url: params.url,
-      filePath: params.filePath || '',
-      header: {
-        // TODO：H5端tokenId怎么处理待解决
-        // tokenid: tokenId
-      },
-      success: res => {
-        if (res.statusCode === 200) {
-          resolve(res)
-        } else {
-          reject(res)
-        }
-      }
+    request({ url: params.url, method: 'GET' }).then(res => {
+      downloadBase64(res.data.baseContent, res.data.filename).then(path => {
+        resolve({ statusCode: 200, tempFilePath: path })
+      })
+    }).catch(err => {
+      reject(err)
     })
   })
 }
