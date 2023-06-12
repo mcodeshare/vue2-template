@@ -134,7 +134,7 @@ class CwyAppSdk {
         const callBackId = jsonData[SDK_CONFIG.CALL_KEY]
         this.delByKeys(jsonData, [SDK_CONFIG.SDK_KEY, SDK_CONFIG.CALL_KEY])
         const { success, fail, complete } = this.callMap[callBackId]
-        if (jsonData.data.flag === SDK_CONFIG.CALL_SUCCESS) {
+        if (jsonData.flag === SDK_CONFIG.CALL_SUCCESS) {
           // sdk成功回调
           typeof success === 'function' && success(jsonData)
           typeof complete === 'function' && complete(jsonData)

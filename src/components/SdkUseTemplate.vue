@@ -119,7 +119,7 @@ export default {
             ...data,
             data: {
               ...data.data,
-              filePath: res.data.data.tempFilePaths[0],
+              filePath: res.data.tempFilePaths[0],
             },
             success: (res) => {
               console.log(`${data.action} success`, res);

@@ -120,16 +120,21 @@ window.cwyAppSdk.postMessage({
 
 ```
 {
-  // 【必传】从接收到的数据复制,这个参数是通信sdk自动生成的标识,用户无感，此参数用于判断执行哪个回调
-  cwyCallId:'cwy-app-sdk-461F9EA6-790E-y8B8-B25C-7976C4DCB89B',
-
-  // 【必传】从接收到的数据复制,这个参数是通信sdk自动生成的标识,用户无感，此参数用于判断哪个初始的sdk发出的
-  sdkId:"cwyAppSdk_0.1.0_4Krdl5Wf",
 
   // 【必传】从接收到的数据复制
   action: 'USER_INFO'
 
   // 【必传】data可以是任何可被JSON.stringify 和 JSON.parse正常处理的数据,具体数据根据回调的约定编写
   data: {},
+
+  // 【必传】消息成功或者失败
+  flag:'success',
+
+  // 【必传】从接收到的数据复制,这个参数是通信sdk自动生成的标识,用户无感，此参数用于判断执行哪个回调
+  cwyCallId:'cwy-app-sdk-461F9EA6-790E-y8B8-B25C-7976C4DCB89B',
+
+  // 【必传】从接收到的数据复制,这个参数是通信sdk自动生成的标识,用户无感，此参数用于判断哪个初始的sdk发出的
+  sdkId:"cwyAppSdk_0.1.0_4Krdl5Wf",
+
 }
 ```

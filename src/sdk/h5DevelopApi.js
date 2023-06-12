@@ -838,10 +838,8 @@ class H5DevelopApi {
       sdkId: params.sdkId,
       cwyCallId: params.cwyCallId,
       action: params.action,
-      data: {
-        flag, //回调成功失败状态码
-        data
-      }
+      flag, //回调成功失败状态码
+      data: data || {}
     }
   }
 
