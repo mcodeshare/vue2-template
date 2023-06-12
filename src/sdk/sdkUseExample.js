@@ -5,7 +5,7 @@ import H5DevelopApi from './h5DevelopApi'
 /* 引入开发依赖api,非真机调试会调用此api，打包会自动排除此部分代码 */
 if (process.env.NODE_ENV === 'development') {
   // 注册用户登录信息到开发环境
-  const userLoginInfo = require('../../public/userLoginInfo.json')
+  const userLoginInfo = require('./userLoginInfo.json')
   new H5DevelopApi({ userLoginInfo })
 
   // 远程加载js

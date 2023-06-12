@@ -42,7 +42,7 @@ export default {
           name: "发送请求",
           detail: {
             data: {
-              url: "a/amar/billconfig/theme/get/default",
+              url: "/amar/billconfig/theme/get/default",
               method: "get",
               data: {
                 msg: "请求携带的参数",
