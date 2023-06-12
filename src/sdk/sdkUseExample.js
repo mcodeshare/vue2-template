@@ -14,7 +14,7 @@ if (process.env.NODE_ENV === 'development') {
     script.type = 'text/javascript';
     if (script.readyState) {
       script.onreadystatechange = function () {
-        if (script.readyState == "complete" || script.readyState == "loaded") {
+        if (script.readyState === "complete" || script.readyState === "loaded") {
           callback()
         }
       }
