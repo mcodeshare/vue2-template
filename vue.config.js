@@ -11,6 +11,10 @@ module.exports = defineConfig({
       //     '^/api': ''
       //   }
       // }
+      '/amar': {
+        target: 'http://10.16.23.168',
+        changeOrigin: true
+      },
     }
   }
 })

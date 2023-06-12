@@ -683,7 +683,7 @@ const H5Request = (params) => {
     })
   })
 }
-export function imageToBase64(filePath) {
+const imageToBase64 = (filePath) => {
   return new Promise((resolve) => {
     window.URL = window.URL || window.webkitURL
     var xhr = new XMLHttpRequest()
@@ -778,7 +778,7 @@ class H5DevelopApi {
   // 判断是否为H5
   judgeIsH5 = () => {
     const ua = navigator.userAgent.toLowerCase()
-    if (ua === 'cwy-app-webview') {
+    if (ua.startsWith('cwy-app-webview')) {
       // app内嵌webview
       return false
     }

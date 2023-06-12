@@ -23,7 +23,9 @@ const SDK_CONFIG = {
   ENV: {
     H5: 'h5',
     // 底座自定义的userAgent需要与此相同
-    CWY_RN: 'cwy-app-webview',
+    CWY_RN_PREFIX: 'cwy-app-webview',
+    CWY_RN_ANDROID: 'cwy-app-webview-android',
+    CWY_RN_IOS: 'cwy-app-webview-ios',
   },
 }
 
@@ -79,9 +81,12 @@ class CwyAppSdk {
   /* 获取环境变量判断网页所处环境 */
   getEnv() {
     const ua = navigator.userAgent.toLowerCase()
-    if (ua === SDK_CONFIG.ENV.CWY_RN) {
-      // app内嵌webview
-      return SDK_CONFIG.ENV.CWY_RN
+    if (ua.startsWith(SDK_CONFIG.ENV.CWY_RN_PREFIX)) {
+      // app内嵌webview,除了ios都使用android标识
+      if (ua === SDK_CONFIG.ENV.CWY_RN_IOS) {
+        return SDK_CONFIG.ENV.CWY_RN_IOS
+      }
+      return SDK_CONFIG.ENV.CWY_RN_ANDROID
     }
     return SDK_CONFIG.ENV.H5
   }
@@ -153,6 +158,7 @@ class CwyAppSdk {
   }
   /* 通信核心，用于抹平差异 */
   core = {
+    // H5
     [SDK_CONFIG.ENV.H5]: {
       // 发布消息
       postMessage: (data) => {
@@ -167,7 +173,8 @@ class CwyAppSdk {
         window.addEventListener('message', fn, false)
       },
     },
-    [SDK_CONFIG.ENV.CWY_RN]: {
+    // 安卓
+    [SDK_CONFIG.ENV.CWY_RN_ANDROID]: {
       postMessage: (data) => {
         window.ReactNativeWebView.postMessage(data)
       },
@@ -176,6 +183,18 @@ class CwyAppSdk {
       },
       subscript: (fn) => {
         window.document.addEventListener('message', fn, false)
+      }
+    },
+    // IOS
+    [SDK_CONFIG.ENV.CWY_RN_IOS]: {
+      postMessage: (data) => {
+        window.ReactNativeWebView.postMessage(data)
+      },
+      onMessage: (e) => {
+        this.handleCall(e.data)
+      },
+      subscript: (fn) => {
+        window.addEventListener('message', fn, false)
       }
     },
   }
