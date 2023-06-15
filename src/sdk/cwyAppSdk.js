@@ -16,7 +16,7 @@ const CONFIG = {
 import CwyAppBridge from './cwyAppBridge'
 /* 初始化通信sdk */
 const cwyAppBridge = new CwyAppBridge({
-  debug: process.env.NODE_ENV === 'development',
+  debug: false,//process.env.NODE_ENV === 'development',
   ready: () => { }
 })
 
